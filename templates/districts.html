@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+
+<head>
+<meta charset="UTF-8">
+<title>Районы Сочи</title>
+
+
+<style>
+:root {
+    --main-green:#1e8f78;
+    --main-blue:#1b5fa7;
+}
+
+
+/* ===== BODY ===== */
+body {
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    color:var(--main-blue);
+
+
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.75)),
+        url("/static/images/moree1.png");
+
+
+    background-size:cover;
+    background-position:center;
+    background-attachment:fixed;
+}
+
+
+/* ===== CONTAINER ===== */
+.container {
+    max-width:1200px;
+    margin:auto;
+    padding:40px 20px;
+}
+
+
+/* ===== TITLE ===== */
+h1 {
+    text-align:center;
+    font-size:36px;
+    margin-bottom:30px;
+}
+
+
+/* ===== GRID ===== */
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+    gap:25px;
+}
+
+
+/* ===== CARD ===== */
+.card {
+    background:white;
+    padding:25px;
+    border-radius:16px;
+    text-decoration:none;
+
+
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+    transition:0.25s;
+
+
+    color:var(--main-blue);
+}
+
+
+.card:hover {
+    transform:translateY(-6px);
+    box-shadow:0 20px 40px rgba(0,0,0,0.2);
+}
+
+
+/* ===== TITLE CARD ===== */
+.card h3 {
+    margin:0 0 10px 0;
+    font-size:22px;
+}
+
+
+/* ===== COUNT ===== */
+.count {
+    font-size:16px;
+    color:#333;
+}
+
+
+/* ===== BADGE ===== */
+.badge {
+    display:inline-block;
+    margin-top:10px;
+    padding:5px 10px;
+    border-radius:20px;
+    background:#e6f6f3;
+    color:var(--main-green);
+    font-size:13px;
+}
+
+
+/* ===== Форма вопроса ===== */
+
+
+.question-btn{
+    position:fixed;
+    bottom:25px;
+    right:25px;
+    background:#009999;
+    color:white;
+    padding:14px 22px;
+    border-radius:30px;
+    cursor:pointer;
+    box-shadow:0 8px 25px rgba(0,0,0,0.2);
+    z-index:9999;
+    font-weight:600;
+}
+
+
+.question-box{
+    position:fixed;
+    bottom:90px;
+    right:25px;
+    background:white;
+    width:340px;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.2);
+    display:none;
+    z-index:9999;
+}
+
+
+.question-close{
+    position:absolute;
+    top:8px;
+    right:12px;
+    font-size:20px;
+    cursor:pointer;
+}
+
+
+.question-box input,
+.question-box textarea{
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    outline:none;
+}
+
+
+.question-box button{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+
+
+    background:linear-gradient(135deg, #1e8f78, #1b5fa7);
+    color:white;
+
+
+    border:none;
+    border-radius:6px;
+
+
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+
+.question-box button:hover{
+    transform:scale(1.02);
+}
+
+
+/* ===== TOAST ===== */
+#toast{
+    display:none;
+    position:fixed;
+    bottom:20px;
+    right:20px;
+
+
+    padding:14px 18px;
+    background:#1e8f78;
+    color:white;
+
+
+    border-radius:10px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.25);
+
+
+    z-index:9999;
+
+
+    font-weight:600;
+    font-size:14px;
+}
+
+
+/* ===== MAP ===== */
+#map{
+    height:360px;
+    width:90%;
+    margin:20px auto;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+
+.hidden-data{
+    display:none;
+}
+
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+
+
+    .grid {
+        grid-template-columns: 1fr;
+        padding:10px;
+        gap:20px;
+    }
+
+
+    .filter-box {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+
+    .filter-box select,
+    .filter-box input,
+    .filter-box button {
+        width:100%;
+        min-width:unset;
+    }
+
+
+    .detail-card {
+        flex-direction: column;
+        max-height:95vh;
+        width:95%;
+        margin:5px auto;
+    }
+
+
+    .detail-slider {
+        width:100%;
+        min-height:250px;
+        max-height:50vh;
+        margin:5px 0;
+    }
+
+
+    .detail-slider img {
+        width:100%;
+        height:auto;
+    }
+
+
+    .detail-content {
+        width:100%;
+        max-height:40vh;
+        margin:5px 0;
+        padding:20px;
+    }
+
+
+    .question-box {
+        width:90%;
+        bottom:10px;
+        right:5%;
+        padding:15px;
+    }
+
+
+    .contact {
+        top:10px;
+        right:10px;
+        padding:8px 12px;
+        font-size:14px;
+    }
+
+
+    .hero h1 { font-size:32px; }
+    .hero p { font-size:16px; }
+}
+
+
+/* ===== CONTACT ===== */
+.contact{
+    position:fixed;
+    top:20px;
+    right:30px;
+    background:#009999;
+    color:white;
+    padding:10px 20px;
+    border-radius:30px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.15);
+    z-index:1000;
+}
+
+
+.contact img{
+    width:22px;
+    height:22px;
+    cursor:pointer;
+    transition: transform 0.2s ease;
+}
+
+
+.contact img:hover{
+    transform: scale(1.2);
+}
+
+
+.contact span{
+    color:#fff;
+}
+
+
+/* ===== BUTTON ===== */
+.locations-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #009999;
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    text-transform: none;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+
+.locations-btn img {
+    width: 28px;
+    height: 28px;
+}
+
+
+.locations-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+</style>
+
+
+</head>
+
+
+<body>
+
+
+<!-- Кнопка О Районах -->
+<a href="{{ url_for('locations') }}" class="locations-btn">
+    <img src="{{ url_for('static', filename='images/landscape.png') }}" alt="Локации">
+    О Районах
+</a>
+
+
+<!-- Контакты -->
+<div class="contact">
+    <a href="https://wa.me/79619374865" target="_blank">
+        <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp">
+    </a>
+
+
+    <a href="https://max.ru/u/f9LHodD0cOJSjhDzN9aHFCuh24QimvwHT64E6iVYZH7DOwGXo5kmCx0B8tY" target="_blank">
+        <img src="{{ url_for('static', filename='images/max.png') }}" alt="Max Messenger">
+    </a>
+
+
+    <span>+7 961 937 48 65</span>
+</div>
+
+
+<!-- Вопрос -->
+<button class="question-btn">Задать вопрос</button>
+
+
+<div class="question-box">
+    <span class="question-close" onclick="document.querySelector('.question-box').style.display='none'">×</span>
+
+
+    <form id="questionForm">
+        <input name="name" placeholder="Имя" required>
+        <input name="phone" placeholder="Телефон" required>
+        <textarea name="message" placeholder="Сообщение" required></textarea>
+        <button type="submit">Отправить</button>
+    </form>
+</div>
+
+
+<div id="toast">Спасибо за ваш вопрос! Я скоро свяжусь с вами.</div>
+
+
+<div class="container">
+
+
+<h1>Районы Сочи</h1>
+
+
+<div class="grid">
+
+
+{% for d in districts %}
+<a class="card" href="/district/{{ d.slug }}">
+    <h3>{{ d.name }}</h3>
+    <p class="count">Объектов: {{ d.count }}</p>
+    <span class="badge">Смотреть предложения</span>
+</a>
+{% endfor %}
+
+
+</div>
+
+
+</div>
+
+
+<script>
+document.querySelector('.question-btn').addEventListener('click', () => {
+    document.querySelector('.question-box').style.display = 'block';
+});
+
+
+document.querySelector('.question-close').addEventListener('click', () => {
+    document.querySelector('.question-box').style.display = 'none';
+});
+
+
+document.getElementById('questionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+
+    let res = await fetch('/lead', {
+        method: 'POST',
+        body: new FormData(e.target)
+    });
+
+
+    if (res.ok) {
+        document.getElementById('toast').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('toast').style.display = 'none';
+        }, 3000);
+
+
+        e.target.reset();
+        document.querySelector('.question-box').style.display = 'none';
+    }
+});
+</script>
+
+
+</body>
+</html>
+
+
+

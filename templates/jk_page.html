@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{{ jk.get("Название ЖК") }} — недвижимость в Сочи</title>
+
+<meta name="description" content="Купить недвижимость в {{ jk.get('Название ЖК') }} ({{ jk.get('Район') }}). Цены, фото, описание.">
+
+<link rel="canonical" href="{{ url_for('jk_page', slug=jk.slug, _external=True) }}">
+
+
+
+<style>
+:root {
+    --main-green:#1e8f78;
+    --main-blue:#1b5fa7;
+
+    /* 🔵 ВЕСЬ ТЕКСТ ТЕПЕРЬ СИНИЙ */
+    --text:#1b5fa7;
+}
+
+/* ===== BODY ===== */
+body {
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    color:var(--text);
+ font-size: 17px;
+
+
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.86), rgba(223,244,241,0.86)),
+        url("{{ url_for('static', filename='images/moree1.png') }}");
+
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* ===== PATTERN ===== */
+body::before {
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+
+    background-image:url("data:image/svg+xml,...");
+    opacity:0.5;
+}
+
+
+/* ===== TOP ===== */
+.top-bar {
+    position:fixed;
+    top:15px;
+    left:15px;
+    z-index:1000;
+}
+
+.catalog-btn {
+    background:#009999;
+    color:white;
+    padding:10px 18px;
+    border-radius:25px;
+    text-decoration:none;
+    font-weight:600;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+    max-width:1100px;
+    margin:auto;
+    padding:80px 20px 30px;
+}
+
+/* ===== TITLE ===== */
+h1 {
+    text-align:center;
+    font-size:38px;
+    margin-bottom:20px;
+    color:var(--main-blue);
+    font-weight:800;
+}
+
+/* ===== SLIDER ===== */
+.slider {
+    position:relative;
+    height:420px;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,0.15);
+}
+
+.slide {
+    width:100%;
+    height:420px;
+    object-fit:cover;
+    display:none;
+}
+
+.slide.active {
+    display:block;
+}
+
+.arrow {
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    background:rgba(0,0,0,0.5);
+    color:white;
+    border:none;
+    padding:10px 14px;
+    cursor:pointer;
+    border-radius:50%;
+}
+
+.arrow.left { left:10px; }
+.arrow.right { right:10px; }
+
+/* ===== CARD ===== */
+.card {
+    background:white;
+    padding:25px;
+    border-radius:16px;
+    margin-top:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+
+    /* 🔵 фикс цвета внутри карточек */
+    color:var(--text);
+}
+
+/* ===== TEXT FIX ===== */
+p, span, div, li {
+    color: var(--text);
+}
+
+/* ===== BUTTON ===== */
+.btn {
+    display:inline-block;
+    margin-top:15px;
+    padding:12px 20px;
+    background:linear-gradient(135deg,var(--main-green),var(--main-blue));
+    color:white;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:600;
+}
+
+/* ===== FORM ===== */
+input, textarea {
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    color:var(--text);
+}
+
+/* ===== SIMILAR ===== */
+.similar-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+    gap:15px;
+}
+
+.similar-card {
+    background:#fff;
+    border-radius:12px;
+    overflow:hidden;
+    cursor:pointer;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    transition:0.2s;
+}
+
+.similar-card:hover {
+    transform:translateY(-5px);
+}
+
+.similar-card img {
+    width:100%;
+    height:150px;
+    object-fit:cover;
+}
+
+.contact{
+    position:fixed;
+    top:20px;
+    right:30px;
+    background:#009999;
+    color:white;
+    padding:10px 20px;
+    border-radius:30px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.15);
+    z-index:1000;
+}
+
+.contact img{
+    width:22px;
+    height:22px;
+    cursor:pointer;
+    transition: transform 0.2s ease;
+}
+
+.contact img:hover{
+    transform: scale(1.2);
+}
+
+.contact span{
+    color:#fff;
+}
+
+#toast{
+    display:none;
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    padding:15px 20px;
+    background:var(--main-green);
+    color:white;
+    border-radius:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+    z-index:9999;
+    font-weight:600;
+}
+
+
+</style>
+
+
+</head>
+
+<body>
+
+<div class="top-bar">
+    <a href="/" class="catalog-btn">Каталог</a>
+</div>
+
+<div class="container">
+
+<h1>{{ jk.get("Название ЖК") }}</h1>
+
+<!-- SLIDER (FIXED) -->
+<div class="slider">
+
+    {% for photo in jk.photo_url %}
+    <img class="slide {% if loop.first %}active{% endif %}" src="{{ photo }}">
+    {% endfor %}
+
+    {% if jk.photo_url|length > 1 %}
+    <button class="arrow left" onclick="changeSlide(-1)">‹</button>
+    <button class="arrow right" onclick="changeSlide(1)">›</button>
+    {% endif %}
+
+</div>
+
+
+<!-- INFO -->
+<div class="card">
+
+<p><b>📍 Район:</b> {{ jk.get("Район") }}</p>
+
+{% if jk.get("Цена_мин") %}
+<p><b>💰 Цена от:</b> {{ "{:,.0f}".format(jk["Цена_мин"]).replace(',',' ') }} ₽</p>
+{% endif %}
+
+{% if jk.get("Площадь_мин") %}
+<p><b>📐 Площадь:</b> {{ jk.get("Площадь_мин") }} – {{ jk.get("Площадь_макс") }} м²</p>
+{% endif %}
+
+</div>
+
+<!-- DESCRIPTION PRO -->
+{% set desc = jk.get("Описание","") %}
+
+{% if desc %}
+<div class="card">
+
+<h3 class="desc-title">Описание объекта</h3>
+
+{% for block in desc.split("\n") if block.strip() %}
+
+    {% if ":" in block %}
+        <h4 class="desc-title">{{ block }}</h4>
+
+    {% elif "•" in block or "-" in block %}
+        <p class="bullet">{{ block }}</p>
+
+    {% else %}
+        <p class="desc-text">{{ block }}</p>
+    {% endif %}
+
+{% endfor %}
+
+<a href="#form" class="btn">Оставить заявку</a>
+
+</div>
+{% endif %}
+
+<!-- FORM -->
+<div class="card" id="form">
+
+<h3 class="desc-title">Заявка</h3>
+
+<form id="leadForm">
+    <input name="name" placeholder="Имя" required>
+    <input name="phone" placeholder="Телефон" required>
+    <textarea name="message" placeholder="Сообщение"></textarea>
+    <button type="submit" class="btn">Отправить</button>
+</form>
+
+</div>
+
+<!-- Контакты -->
+<div class="contact">
+    <a href="https://wa.me/79619374865" target="_blank">
+        <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp">
+    </a>
+
+    <a href="https://max.ru/u/f9LHodD0cOJSjhDzN9aHFCuh24QimvwHT64E6iVYZH7DOwGXo5kmCx0B8tY" target="_blank">
+        <img src="{{ url_for('static', filename='images/max.png') }}" alt="Max Messenger">
+    </a>
+
+    <span>+7 961 937 48 65</span>
+</div>
+
+
+<!-- SIMILAR -->
+{% if similar %}
+<div class="card">
+
+<h3 class="desc-title">Похожие объекты</h3>
+
+<div class="similar-grid">
+
+{% for s in similar %}
+<div class="similar-card" onclick="window.location.href='/jk/{{ s.slug }}'">
+
+    {% if s.photo_url %}
+    <img src="{{ s.photo_url[0] }}">
+    {% endif %}
+
+    <div style="padding:10px;">
+        <b>{{ s.get("Название ЖК") }}</b>
+        <p>{{ s.get("Район") }}</p>
+    </div>
+
+</div>
+{% endfor %}
+
+</div>
+</div>
+{% endif %}
+
+</div>
+
+<script>
+
+let index = 0;
+
+function changeSlide(dir){
+    let slides = document.querySelectorAll('.slide');
+    if(!slides.length) return;
+
+    slides[index].classList.remove('active');
+    index = (index + dir + slides.length) % slides.length;
+    slides[index].classList.add('active');
+}
+
+document.getElementById('leadForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+
+    let res = await fetch('/lead',{
+        method:'POST',
+        body:new FormData(e.target)
+    });
+
+   if(res.ok){
+    let toast = document.getElementById('toast');
+    toast.textContent = "Спасибо за вашу заявку! Я скоро свяжусь с вами";
+    toast.style.display = 'block';
+
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3000);
+
+    e.target.reset();
+}
+
+});
+
+
+</script>
+
+<div id="toast">Спасибо за вашу заявку! Я скоро свяжусь с вами</div>
+
+
+</body>
+</html>

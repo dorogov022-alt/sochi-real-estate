@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ваш город у моря</title>
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+</head>
+<style>
+:root {
+    --main-green: #1e8f78;
+    --main-blue: #1b5fa7;
+    --bg-light: #dff4f1;
+    --text-dark: #1f2d3d;
+}
+/* ===== Стили ===== */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+body{background:var(--bg-light);color:var(--text-dark);}
+
+
+/* ===== Кнопки контактов ===== */
+.contact{
+    position:fixed; top:20px; right:30px;
+    background:#009999;
+    color:white; padding:10px 20px; border-radius:30px;
+    font-weight:600; display:flex; align-items:center; gap:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.15); z-index:1000;
+}
+.contact img{width:22px; height:22px; cursor:pointer; transition: transform 0.2s ease;}
+.contact img:hover{transform: scale(1.2);}
+
+
+.locations-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #009999;
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    text-transform: none;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.locations-btn img { width: 28px; height: 28px; }
+.locations-btn:hover { transform: scale(1.1); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+
+
+/* ===== Hero с фоном ===== */
+.hero {
+    height: 60vh;
+    position: relative;
+
+
+    background: url('{{ url_for("static", filename="images/fon.png") }}') no-repeat center center;
+    background-size: cover;
+
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+
+    color: white;
+    text-align: center;
+    overflow: hidden;
+}
+
+
+/* 🔥 overlay для улучшения качества */
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25); /* можно 0.15–0.35 регулировать */
+    z-index: 1;
+}
+
+
+/* 🔥 чтобы текст был поверх */
+.hero > div {
+    position: relative;
+    z-index: 2;
+}
+
+
+.hero h1 {
+    font-size:44px;
+    margin-bottom:10px;
+}
+
+
+.hero p {
+    font-size:20px;
+}
+
+
+
+
+/* ===== Фильтр ===== */
+.filter-box{background:white; padding:20px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.08); width:90%;max-width:1100px; margin:-40px auto 20px auto; display:flex;gap:15px;flex-wrap:wrap;justify-content:center; z-index:1; position:relative;}
+.filter-box select,.filter-box input{padding:10px;border:1px solid #ddd;border-radius:8px;min-width:160px;}
+.filter-box button{background:#009999; color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;}
+
+
+/* ===== Сетка ЖК ===== */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:30px;padding:20px 30px;}
+.card{border-radius:20px;overflow:hidden; box-shadow:0 15px 35px rgba(0,0,0,0.15); cursor:pointer; transition:0.4s; background:white;}
+.card:hover{ transform:translateY(-8px); box-shadow:0 25px 50px rgba(0,0,0,0.25); }
+.slider{position:relative;height:220px;overflow:hidden;}
+.slide{width:100%;height:220px;object-fit:cover;display:none;transition:0.4s;}
+.slide.active{display:block;}
+.arrow{position:absolute;top:50%;transform:translateY(-50%); background:rgba(0,0,0,0.5);color:white;border:none;padding:6px 12px;cursor:pointer;border-radius:50%;font-size:18px;}
+.arrow.left{left:10px;} .arrow.right{right:10px;}
+.card-content{padding:20px;background:#f8fffd;}
+.card-content h3{font-size:22px;color:var(--main-blue);margin-bottom:6px;}
+.card-content p{margin-bottom:8px;font-size:16px;}
+.price{font-weight:700;color:var(--main-green);margin-top:10px;}
+
+
+/* ===== Overlay и Detail Card ===== */
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%; background:rgba(0,0,0,0.7); display:none;justify-content:center;align-items:center; z-index:200;padding:20px;}
+.detail-card{display:flex;flex-wrap:wrap; background:#c2f0eb; max-width:1200px;width:95%; border-radius:25px; max-height:90vh; opacity:0; transform:scale(0.9); transition:0.5s ease; box-shadow:0 15px 45px rgba(0,0,0,0.35);}
+.detail-card.show{ opacity:1; transform:scale(1); }
+.close{position:absolute;top:15px;right:20px;font-size:26px; cursor:pointer;color:white;z-index:10;}
+.detail-slider{flex:1 1 400px; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:20px; position:relative; min-height:400px; max-height:80vh; margin:10px;}
+.detail-slider img{width:90%; height:auto; object-fit:cover; display:none; border-radius:20px; box-shadow:0 8px 20px rgba(0,0,0,0.25); transition:0.4s;}
+.detail-slider img.active{display:block;}
+.detail-arrow{position:absolute;top:50%;transform:translateY(-50%); background:rgba(0,0,0,0.5);color:white;border:none; padding:8px 14px; cursor:pointer;border-radius:50%; font-size:22px;}
+.detail-arrow.left{left:10px;} .detail-arrow.right{right:10px;}
+.detail-content{flex:1 1 350px; padding:30px; line-height:1.6; background:#a3e0dc; margin:10px; border-radius:20px; font-family:"Bookman Old Style", serif; font-style:italic; overflow-y:auto; max-height:calc(90vh - 20px);}
+.detail-content h3{font-size:28px;margin-bottom:10px;color:var(--main-blue);}
+.detail-content p{margin-bottom:10px;font-size:18px;}
+.detail-content strong{color:var(--main-green);}
+
+
+/* ===== Форма вопроса ===== */
+.question-btn{position:fixed;bottom:25px;right:25px; background:#009999; color:white;padding:14px 22px;border-radius:30px; cursor:pointer; box-shadow:0 8px 25px rgba(0,0,0,0.2);z-index:500;}
+.question-box{position:fixed;bottom:90px;right:25px;background:white; width:340px;padding:20px;border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.2); display:none; z-index:500;}
+.question-close{position:absolute;top:8px;right:12px;font-size:20px;cursor:pointer;}
+.question-box input,.question-box textarea{width:100%;padding:10px;margin-bottom:10px;border:1px solid #ddd;border-radius:6px;}
+.question-box button{width:100%;padding:10px;background:linear-gradient(135deg,var(--main-green),var(--main-blue)); color:white;border:none;border-radius:6px;}
+#toast{display:none;position:fixed;bottom:20px;right:20px; padding:15px;background:var(--main-green); color:white;border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.2);z-index:500;}
+#map{height:360px;width:90%;margin:20px auto;border-radius:20px;overflow:hidden;}
+.hidden-data{display:none;}
+
+
+@media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; padding:10px; gap:20px; }
+    .filter-box { flex-direction: column; align-items: stretch; }
+    .filter-box select,.filter-box input,.filter-box button { width:100%; min-width:unset; }
+    .detail-card { flex-direction: column; max-height:95vh; width:95%; margin:5px auto; }
+    .detail-slider { width:100%; min-height:250px; max-height:50vh; margin:5px 0; }
+    .detail-slider img { width:100%; height:auto; }
+    .detail-content { width:100%; max-height:40vh; margin:5px 0; padding:20px; }
+    .question-box { width:90%; bottom:10px; right:5%; padding:15px; }
+    .contact { top:10px; right:10px; padding:8px 12px; font-size:14px; }
+    .hero h1 { font-size:32px; } .hero p { font-size:16px; }
+}
+</style>
+<body>
+
+
+<!-- Кнопка О Районах -->
+<a href="{{ url_for('locations') }}" class="locations-btn">
+    <img src="{{ url_for('static', filename='images/landscape.png') }}" alt="Локации">
+    О Районах
+</a>
+
+
+<!-- Контакты -->
+<div class="contact">
+    <a href="https://wa.me/79619374865" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp"></a>
+    <a href="https://max.ru/u/f9LHodD0cOJSjhDzN9aHFCuh24QimvwHT64E6iVYZH7DOwGXo5kmCx0B8tY" target="_blank"><img src="{{ url_for('static', filename='images/max.png') }}" alt="Max Messenger"></a>
+    +7 961 937 48 65
+</div>
+
+
+<!-- Hero -->
+<div class="hero">
+    <div><h1>Ваш город у моря</h1><p>Жизнь в Сочи ближе чем кажется!</p></div>
+</div>
+
+
+<!-- Фильтр -->
+<form method="get" class="filter-box">
+    <input type="text" name="search" placeholder="Поиск по названию" value="{{ request.args.get('search','') }}">
+    <select name="district">
+        <option value="">Все районы</option>
+        {% for d in districts %}
+        <option value="{{ d }}" {% if request.args.get('district','') == d %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+    </select>
+    <input type="number" name="price_to" placeholder="Бюджет до" value="{{ request.args.get('price_to','') }}">
+    <input type="number" name="area_from" placeholder="Площадь от" value="{{ request.args.get('area_from','') }}">
+    <button type="submit">Найти</button>
+</form>
+
+
+<!-- Карта -->
+<div id="map"></div>
+
+
+<!-- Сетка ЖК -->
+<div class="grid">
+{% if complexes %}
+    {% for jk in complexes %}
+   <div class="card" onclick="window.location.href='/jk/{{ jk.slug }}'">
+        <div class="slider">
+           {% for photo in jk.photos %}
+<picture>
+    <source srcset="{{ url_for('static', filename='images/' ~ photo|replace('.jpg','.webp')) }}" type="image/webp">
+
+    <img class="slide {% if loop.first %}active{% endif %}"
+         src="{{ url_for('static', filename='images/' ~ photo) }}"
+         srcset="{{ url_for('static', filename='images/' ~ photo) }} 1x"
+         sizes="(max-width: 768px) 100vw, 320px"
+         loading="lazy"
+         decoding="async">
+ </picture>
+ {% endfor %}
+
+            {% if jk.photos|length > 1 %}
+            <button type="button" class="arrow left" onclick="prevSlide(event,this)">‹</button>
+            <button type="button" class="arrow right" onclick="nextSlide(event,this)">›</button>
+            {% endif %}
+        </div>
+     <div class="card-content">
+
+
+    <!-- SEO ссылка -->
+    <a href="/jk/{{ jk.slug }}" style="display:none;">
+        {{ jk.get("Название ЖК") }}
+    </a>
+
+
+    <h3>{{ jk.get("Название ЖК","—") }}</h3>
+
+
+    <p>{{ jk.get("Район","—") }}</p>
+
+
+    {% if jk.get("Площадь_мин") is not none and jk.get("Площадь_макс") is not none %}
+    <p>
+        Площадь: {{ "{:,.0f}".format(jk["Площадь_мин"]).replace(',',' ') }}
+        – {{ "{:,.0f}".format(jk["Площадь_макс"]).replace(',',' ') }} м²
+    </p>
+    {% endif %}
+
+
+    {% if jk.get("Цена_мин") is not none %}
+    <div class="price">
+        от {{ "{:,.0f}".format(jk["Цена_мин"]).replace(',',' ') }} ₽
+    </div>
+    {% endif %}
+
+
+</div>
+
+
+        <div class="hidden-data">
+            <h3>{{ jk.get("Название ЖК") }}</h3>
+            {% if jk.get("Адрес") %}<p>📍 <strong>Адрес:</strong> {{ jk.get("Адрес") }}</p>{% endif %}
+            {% if jk.get("Класс") %}<p>🏢 <strong>Класс:</strong> {{ jk.get("Класс") }}</p>{% endif %}
+            {% if jk.get("Статус") %}<p>✅ <strong>Статус:</strong> {{ jk.get("Статус") }}</p>{% endif %}
+            {% if jk.get("Описание") %}<hr><p style="white-space:pre-line;">{{ jk.get("Описание") }}</p>{% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<p style="grid-column:1/-1;text-align:center;font-size:18px;">Извините, по запрашиваемым параметрам ничего не найдено.</p>
+{% endif %}
+</div>
+
+
+<!-- Overlay -->
+<div class="overlay" id="overlay">
+    <div class="detail-card" id="detailCard">
+        <span class="close" onclick="closeDetail()">×</span>
+        <div class="detail-slider" id="detailSlider"></div>
+        <div class="detail-content" id="detailContent"></div>
+    </div>
+</div>
+
+
+<!-- Вопрос -->
+<button class="question-btn">Задать вопрос</button>
+<div class="question-box">
+    <span class="question-close" onclick="document.querySelector('.question-box').style.display='none'">×</span>
+    <form id="questionForm">
+        <input name="name" placeholder="Имя" required>
+        <input name="phone" placeholder="Телефон" required>
+        <textarea name="message" placeholder="Сообщение" required></textarea>
+        <input type="text" name="website" autocomplete="off" tabindex="-1" style="display:none">
+        <button type="submit">Отправить</button>
+    </form>
+</div>
+<div id="toast">Спасибо за ваш вопрос! Я скоро свяжусь с вами.</div>
+
+
+<script>
+var complexes = {{ complexes | tojson | default('[]') | safe }};
+
+
+// ===== Слайдер карточек =====
+function prevSlide(e,btn){e.stopPropagation();let slides=btn.closest('.slider').querySelectorAll('.slide');if(slides.length===0) return; let idx=[...slides].findIndex(s=>s.classList.contains('active')); slides[idx].classList.remove('active'); slides[(idx-1+slides.length)%slides.length].classList.add('active');}
+function nextSlide(e,btn){e.stopPropagation();let slides=btn.closest('.slider').querySelectorAll('.slide');if(slides.length===0) return; let idx=[...slides].findIndex(s=>s.classList.contains('active')); slides[idx].classList.remove('active'); slides[(idx+1)%slides.length].classList.add('active');}
+
+
+// ===== Overlay и detail-card =====
+let touchStartX=0, touchEndX=0;
+function openDetail(card){
+    const overlay=document.getElementById('overlay');
+    const detailCard=document.getElementById('detailCard');
+    const slider=document.getElementById('detailSlider');
+    const content=document.getElementById('detailContent');
+    slider.innerHTML=''; content.innerHTML=card.querySelector('.hidden-data').innerHTML;
+    const photos=card.querySelectorAll('.slide');
+    if(photos.length>0){
+        photos.forEach((s,i)=>{const img=document.createElement('img'); img.src=s.src; img.loading="lazy"; if(i===0) img.classList.add('active'); slider.appendChild(img);});
+        if(photos.length>1){
+            const left=document.createElement('button'); const right=document.createElement('button');
+            left.innerHTML='‹'; right.innerHTML='›'; left.className='detail-arrow left'; right.className='detail-arrow right';
+            left.onclick=()=>changeSlide(-1); right.onclick=()=>changeSlide(1);
+            slider.appendChild(left); slider.appendChild(right);
+            slider.addEventListener('touchstart', e=>{ touchStartX=e.changedTouches[0].screenX; });
+            slider.addEventListener('touchend', e=>{ touchEndX=e.changedTouches[0].screenX; handleSwipe(); });
+        }
+    }
+    overlay.style.display='flex';
+    setTimeout(()=>detailCard.classList.add('show'),50);
+}
+function handleSwipe(){let diff=touchEndX-touchStartX; if(Math.abs(diff)>50){ if(diff>0) changeSlide(-1); else changeSlide(1); }}
+function closeDetail(){const detailCard=document.getElementById('detailCard'); detailCard.classList.remove('show'); setTimeout(()=>document.getElementById('overlay').style.display='none',300);}
+function changeSlide(dir){const slides=document.querySelectorAll('#detailSlider img'); if(slides.length===0) return; let idx=[...slides].findIndex(s=>s.classList.contains('active')); slides[idx].classList.remove('active'); slides[(idx+dir+slides.length)%slides.length].classList.add('active');}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.currentTarget) closeDetail();});
+
+
+// ===== Вопрос =====
+document.querySelector('.question-btn').addEventListener('click',()=>{let box=document.querySelector('.question-box'); box.style.display=(box.style.display==='block')?'none':'block';});
+document.getElementById('questionForm').addEventListener('submit',async e=>{e.preventDefault(); let formData=new FormData(e.target); try{ let res=await fetch('/lead',{method:'POST',body:formData}); if(res.ok){ let toast=document.getElementById('toast'); toast.style.display='block'; setTimeout(()=>toast.style.display='none',3000); e.target.reset(); document.querySelector('.question-box').style.display='none'; }}catch(err){console.log(err);}});
+
+
+// ===== Яндекс Карта с динамическим центром =====
+ymaps.ready(init);
+function init(){
+    const filteredCoords = complexes.filter(jk => jk.lat && jk.lon);
+    let mapCenter = [43.585, 39.720];
+    let mapZoom = 11;
+    let map = new ymaps.Map("map", {center: mapCenter, zoom: mapZoom, controls:['zoomControl']});
+
+
+    if(filteredCoords.length > 0){
+        let geoObjects = filteredCoords.map(jk => new ymaps.Placemark([jk.lat, jk.lon], {}, {preset:'islands#icon', iconColor:'#1e8f78'}));
+        geoObjects.forEach((placemark, i) => {
+            placemark.events.add('click', () => openDetailTemp(filteredCoords[i]));
+            map.geoObjects.add(placemark);
+        });
+        let bounds = ymaps.geoQuery(geoObjects).getBounds();
+        map.setBounds(bounds, {checkZoomRange:true, zoomMargin:50});
+    }
+}
+
+
+// ===== Функция открытия detail-card из карты =====
+function openDetailTemp(jk){
+    const tempCard = document.createElement('div');
+    tempCard.classList.add('card');
+    tempCard.innerHTML = `<div class="hidden-data">
+        <h3>${jk['Название ЖК']||''}</h3>
+        ${jk['Адрес']?`<p>📍 <strong>Адрес:</strong> ${jk['Адрес']}</p>`:''}
+        ${jk['Класс']?`<p>🏢 <strong>Класс:</strong> ${jk['Класс']}</p>`:''}
+        ${jk['Статус']?`<p>✅ <strong>Статус:</strong> ${jk['Статус']}</p>`:''}
+        ${jk['Описание']?`<hr><p style="white-space:pre-line;">${jk['Описание']}</p>`:''}
+    </div>`;
+    if(jk.photos && jk.photos.length>0){
+        let sliderHTML = jk.photos.map((p,i)=>`<img class="slide ${i===0?'active':''}" src="/static/images/${p}" loading="lazy">`).join('');
+        let sliderDiv = document.createElement('div');
+        sliderDiv.classList.add('slider');
+        sliderDiv.innerHTML = sliderHTML;
+        tempCard.appendChild(sliderDiv);
+    }
+    openDetail(tempCard);
+}
+</script>
+</body>
+</html>
+
+
+
+
+
